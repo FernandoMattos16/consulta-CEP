@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta CEP</title>
+    <style>
+        /* Estilos globais */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        .cep-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            width: 300px;
+            padding: 15px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .result p {
+            margin: 5px 0;
+        }
+
+        /* Estilo para o dark mode */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .result {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+
+        body.dark-mode button {
+            background-color: #bb86fc;
+        }
+
+        body.dark-mode button:hover {
+            background-color: #9b68e6;
+        }
+
+        /* Botão de alternância de tema */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .dark-mode-toggle img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeButton">
+        <img src="https://cdn-icons-png.flaticon.com/512/169/169367.png" alt="Light Mode Icon" id="darkModeIcon">
+    </button>
+    <h1>Consulta CEP</h1>
+    <div class="cep-container">
+        <input type="text" id="cep" placeholder="Digite o CEP (ex: 01001000)" />
+        <button onclick="consultarCEP()">Pesquisar</button>
+        <div id="resultado" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById("darkModeIcon");
+            
+            // Alterna a classe "dark-mode"
+            body.classList.toggle("dark-mode");
+
+            // Atualiza o ícone
+            if (body.classList.contains("dark-mode")) {
+                icon.src = "https://cdn-icons-png.flaticon.com/512/740/740878.png"; // Ícone da Lua (Dark Mode)
+                icon.alt = "Dark Mode Icon";
+            } else {
+                icon.src = "https://cdn-icons-png.flaticon.com/512/169/169367.png"; // Ícone do Sol (Light Mode)
+                icon.alt = "Light Mode Icon";
+            }
+        }
+
+        async function consultarCEP() {
+            const cep = document.getElementById('cep').value.trim();
+            const resultadoDiv = document.getElementById('resultado');
+
+            // Limpa resultados anteriores
+            resultadoDiv.style.display = "none";
+            resultadoDiv.innerHTML = "";
+
+            // Verifica se o CEP é válido
+            if (!/^\d{8}$/.test(cep)) {
+                alert("Por favor, insira um CEP válido com 8 dígitos.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://opencep.com/v1/${cep}`);
+                if (response.ok) {
+                    const dados = await response.json();
+
+                    // Exibe os dados do CEP, incluindo complemento
+                    resultadoDiv.style.display = "block";
+                    resultadoDiv.innerHTML = `
+                        <p><strong>CEP:</strong> ${dados.cep}</p>
+                        <p><strong>Logradouro:</strong> ${dados.logradouro || "Não informado"}</p>
+                        <p><strong>Bairro:</strong> ${dados.bairro || "Não informado"}</p>
+                        <p><strong>Cidade:</strong> ${dados.localidade || "Não informado"}</p>
+                        <p><strong>Estado:</strong> ${dados.uf || "Não informado"}</p>
+                        <p><strong>Complemento:</strong> ${dados.complemento || "Não informado"}</p>
+                    `;
+                } else {
+                    alert("CEP não encontrado.");
+                }
+            } catch (error) {
+                console.error("Erro ao consultar a API:", error);
+                alert("Ocorreu um erro ao consultar o CEP. Tente novamente.");
+            }
+        }
+    </script>
+</body>
+</html>
